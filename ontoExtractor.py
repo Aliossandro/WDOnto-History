@@ -75,100 +75,124 @@ def queryexecutor():
     for i in range(13, 18):
         for j in range(1, 10):
             date = "20" + str(i) + "-0" + str(j) + "-01"
-            dictStats[date] = {}
-            query = """
-                SELECT * FROM tempData WHERE tS < '""" + date + """ 00:00:00';
-            """
 
-            # print(query)
-            df = pd.DataFrame()
-            for chunk in pd.read_sql(query, con=conn, chunksize=500000):
-                df = df.append(chunk)
+            try:
+                dictStats[date] = {}
 
-            df = df[df['statvalue'] != 'deleted']
-            idx = df.groupby(['statementid'])['revid'].transform(max) == df['revid']
-            dfClean = df[idx]
-            fileName = "WDHierarchy-" + date + ".csv"
-            dfClean.to_csv(fileName, index=False)
+                query = """
+                    SELECT * FROM tempData WHERE tS < '""" + date + """ 00:00:00';
+                """
 
-            # unique P279 and P31
-            uniqueClasses = dfClean['statvalue'].nunique()
-            dictStats[date]['uniqueClasses'] = uniqueClasses
-            uniqueAll = dfClean.groupby('statproperty')['statvalue'].nunique()
-            dictStats[date]['P279'] = uniqueAll['P279']
-            dictStats[date]['P31'] = uniqueAll['P31']
+                # print(query)
+                df = pd.DataFrame()
+                for chunk in pd.read_sql(query, con=conn, chunksize=500000):
+                    df = df.append(chunk)
 
-            query2 = """
-                            SELECT DISTINCT itemId FROM (SELECT itemId, (timestamp::timestamp) FROM revisionData_201710 WHERE timestamp < '""" + date + """ 00:00:00');
-                        """
-            # print(query)
-            dfIndiv = pd.DataFrame()
-            for chunk in pd.read_sql(query2, con=conn, chunksize=500000):
-                dfIndiv = dfIndiv.append(chunk)
 
-            fileName = "WDIndiv-" + date + ".csv"
-            dfIndiv.to_csv(fileName, index=False)
+                df = df[df['statvalue'] != 'deleted']
+                idx = df.groupby(['statementid'])['revid'].transform(max) == df['revid']
+                dfClean = df[idx]
+                fileName = "WDHierarchy-" + date + ".csv"
+                dfClean.to_csv(fileName, index=False)
 
-            query3 = """
-                                        SELECT DISTINCT itemId FROM (SELECT itemId, (timestamp::timestamp) FROM revisionData_201710 WHERE timestamp < '""" + date + """ 00:00:00') AND itemId ~* 'P[0-9]{1,};
-                                    """
-            # print(query)
-            dfProp = pd.DataFrame()
-            for chunk in pd.read_sql(query3, con=conn, chunksize=500000):
-                dfProp = dfProp.append(chunk)
+                # unique P279 and P31
+                uniqueClasses = dfClean['statvalue'].nunique()
+                dictStats[date]['uniqueClasses'] = uniqueClasses
+                uniqueAll = dfClean.groupby('statproperty')['statvalue'].nunique()
+                dictStats[date]['P279'] = uniqueAll['P279']
+                dictStats[date]['P31'] = uniqueAll['P31']
+            except:
+                print("no df available")
 
-            fileName = "WDProp-" + date + ".csv"
-            dfProp.to_csv(fileName, index=False)
+            try:
+                query2 = """
+                                SELECT DISTINCT itemId FROM (SELECT itemId, (timestamp::timestamp) FROM revisionData_201710 WHERE timestamp < '""" + date + """ 00:00:00');
+                            """
+                # print(query)
+                dfIndiv = pd.DataFrame()
+                for chunk in pd.read_sql(query2, con=conn, chunksize=500000):
+                    dfIndiv = dfIndiv.append(chunk)
+
+                fileName = "WDIndiv-" + date + ".csv"
+                dfIndiv.to_csv(fileName, index=False)
+            except:
+                print("no df available")
+
+            try:
+                query3 = """
+                                            SELECT DISTINCT itemId FROM (SELECT itemId, (timestamp::timestamp) FROM revisionData_201710 WHERE timestamp < '""" + date + """ 00:00:00') AND itemId ~* 'P[0-9]{1,};
+                                        """
+                # print(query)
+                dfProp = pd.DataFrame()
+                for chunk in pd.read_sql(query3, con=conn, chunksize=500000):
+                    dfProp = dfProp.append(chunk)
+
+                fileName = "WDProp-" + date + ".csv"
+                dfProp.to_csv(fileName, index=False)
+            except:
+                print("no df available")
 
 
         for j in range(10, 13):
             date = "20" + str(i) + "-0" + str(j) + "-01"
-            query = """
-                            SELECT * FROM tempData WHERE tS < '""" + date + """ 00:00:00';
-                        """
+            try:
+                dictStats[date] = {}
+                query = """
+                                SELECT * FROM tempData WHERE tS < '""" + date + """ 00:00:00';
+                            """
+                df = pd.DataFrame()
+                for chunk in pd.read_sql(query, con=conn, chunksize=50000):
+                    df = df.append(chunk)
 
-            df = pd.DataFrame()
-            for chunk in pd.read_sql(query, con=conn, chunksize=50000):
-                df = df.append(chunk)
+                df = df[df['statvalue'] != 'deleted']
+                idx = df.groupby(['statementid'])['revid'].transform(max) == df['revid']
+                dfClean = df[idx]
+                fileName = "WDHierarchy-" + date + ".csv"
+                dfClean.to_csv(fileName, index=False)
 
-            df = df[df['statvalue'] != 'deleted']
-            idx = df.groupby(['statementid'])['revid'].transform(max) == df['revid']
-            dfClean = df[idx]
-            fileName = "WDHierarchy-" + date + ".csv"
-            dfClean.to_csv(fileName, index=False)
+                # unique P279 and P31
+                uniqueClasses = dfClean['statvalue'].nunique()
+                dictStats[date]['uniqueClasses'] = uniqueClasses
+                uniqueAll = dfClean.groupby('statproperty')['statvalue'].nunique()
+                dictStats[date]['P279'] = uniqueAll['P279']
+                dictStats[date]['P31'] = uniqueAll['P31']
+            except:
+                print("no df available")
 
-            # unique P279 and P31
-            uniqueClasses = dfClean['statvalue'].nunique()
-            dictStats[date]['uniqueClasses'] = uniqueClasses
-            uniqueAll = dfClean.groupby('statproperty')['statvalue'].nunique()
-            dictStats[date]['P279'] = uniqueAll['P279']
-            dictStats[date]['P31'] = uniqueAll['P31']
+            try:
+                query2 = """
+                                            SELECT DISTINCT itemId FROM (SELECT itemId, (timestamp::timestamp) FROM revisionData_201710 WHERE timestamp < '""" + date + """ 00:00:00');
+                                        """
+                # print(query)
+                dfIndiv = pd.DataFrame()
+                for chunk in pd.read_sql(query2, con=conn, chunksize=500000):
+                    dfIndiv = dfIndiv.append(chunk)
 
-            query2 = """
-                                        SELECT DISTINCT itemId FROM (SELECT itemId, (timestamp::timestamp) FROM revisionData_201710 WHERE timestamp < '""" + date + """ 00:00:00');
-                                    """
-            # print(query)
-            dfIndiv = pd.DataFrame()
-            for chunk in pd.read_sql(query2, con=conn, chunksize=500000):
-                dfIndiv = dfIndiv.append(chunk)
+                fileName = "WDIndiv-" + date + ".csv"
+                dfIndiv.to_csv(fileName, index=False)
+            except:
+                print("no df available")
 
-            fileName = "WDIndiv-" + date + ".csv"
-            dfIndiv.to_csv(fileName, index=False)
+            try:
+                query3 = """
+                                                        SELECT DISTINCT itemId FROM (SELECT itemId, (timestamp::timestamp) FROM revisionData_201710 WHERE timestamp < '""" + date + """ 00:00:00') AND itemId ~* 'P[0-9]{1,};
+                                                    """
+                # print(query)
+                dfProp = pd.DataFrame()
+                for chunk in pd.read_sql(query3, con=conn, chunksize=500000):
+                    dfProp = dfProp.append(chunk)
 
-            query3 = """
-                                                    SELECT DISTINCT itemId FROM (SELECT itemId, (timestamp::timestamp) FROM revisionData_201710 WHERE timestamp < '""" + date + """ 00:00:00') AND itemId ~* 'P[0-9]{1,};
-                                                """
-            # print(query)
-            dfProp = pd.DataFrame()
-            for chunk in pd.read_sql(query3, con=conn, chunksize=500000):
-                dfProp = dfProp.append(chunk)
+                fileName = "WDProp-" + date + ".csv"
+                dfProp.to_csv(fileName, index=False)
+            except:
+                print("no df available")
 
-            fileName = "WDProp-" + date + ".csv"
-            dfProp.to_csv(fileName, index=False)
-
-    pickle_out = open("WDdata.pickle", "wb")
-    pickle.dump(dictStats, pickle_out)
-    pickle_out.close()
+    try:
+        pickle_out = open("WDdata.pickle", "wb")
+        pickle.dump(dictStats, pickle_out)
+        pickle_out.close()
+    except:
+        print("suca")
 
 def main():
     create_table()
